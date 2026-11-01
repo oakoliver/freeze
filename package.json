@@ -14,7 +14,7 @@
     }
   },
   "bin": {
-    "freeze": "./dist/cli.js"
+    "freeze": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -49,7 +49,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/oakoliver/freeze"
+    "url": "git+https://github.com/oakoliver/freeze.git"
   },
   "homepage": "https://github.com/oakoliver/freeze#readme",
   "bugs": {
