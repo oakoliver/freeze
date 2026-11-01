@@ -226,6 +226,7 @@ async function run(argv: string[]): Promise<void> {
   const rendered = renderDocument(config, source, format);
   const rasterOptions = {
     loadSystemFonts: config.font.family !== 'JetBrains Mono' || undefined,
+    ligatures: config.font.ligatures,
     fontFiles: config.font.file && /\.(ttf|otf)$/i.test(config.font.file) ? [config.font.file] : undefined,
   };
 

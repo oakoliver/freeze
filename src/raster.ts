@@ -27,6 +27,12 @@ export interface RasterOptions {
   loadSystemFonts?: boolean;
   /** Family used when the SVG's family is not found. */
   defaultFontFamily?: string;
+  /**
+   * false draws JetBrains Mono without ligatures. resvg ignores the SVG's
+   * @font-face and picks fonts by family name, and the no-ligature file is
+   * named "JetBrains Mono NL", so the SVG's family is swapped for rasterizing.
+   */
+  ligatures?: boolean;
 }
 
 export interface Pixels {
@@ -59,9 +65,14 @@ export function hasResvg(): boolean {
   return loadResvg() !== null;
 }
 
-function renderResvg(svg: string, opts: RasterOptions): { width: number; height: number; pixels: Uint8Array; png: () => Uint8Array } {
+function renderResvg(input: string, opts: RasterOptions): { width: number; height: number; pixels: Uint8Array; png: () => Uint8Array } {
   const mod = loadResvg();
   if (!mod) throw new RasterError(MISSING);
+  const noLigatures = opts.ligatures === false;
+  const svg = noLigatures
+    ? input.replaceAll('font-family="JetBrains Mono"', 'font-family="JetBrains Mono NL"')
+    : input;
+  const family = noLigatures ? 'JetBrains Mono NL' : 'JetBrains Mono';
   const resvg = new mod.Resvg(svg, {
     dpi: 192,
     shapeRendering: 2, // geometricPrecision
@@ -70,8 +81,8 @@ function renderResvg(svg: string, opts: RasterOptions): { width: number; height:
     font: {
       fontFiles: [JETBRAINS_MONO_FILE, JETBRAINS_MONO_NL_FILE, ...(opts.fontFiles ?? [])],
       loadSystemFonts: opts.loadSystemFonts ?? false,
-      defaultFontFamily: opts.defaultFontFamily ?? 'JetBrains Mono',
-      monospaceFamily: 'JetBrains Mono',
+      defaultFontFamily: opts.defaultFontFamily ?? family,
+      monospaceFamily: family,
     },
   });
   const image = resvg.render();

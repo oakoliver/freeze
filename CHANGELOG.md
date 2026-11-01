@@ -35,6 +35,7 @@ and works on Windows).
 - The embedded font is declared as TrueType (upstream calls it WOFF2).
 - `.webp` writes real lossless WebP (upstream writes SVG text into the file).
 - PNG prefers resvg over `rsvg-convert`, which ignores the embedded font.
+- `--no-font.ligatures` turns ligatures off in PNG and WebP too.
 - `--execute` uses Bun's terminal or `script(1)` instead of a native PTY.
 - Interactive mode keeps one field per line and needs a terminal.
 

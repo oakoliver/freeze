@@ -201,6 +201,10 @@ describe('library API', () => {
     const px = rasterize(renderSVG({ code: 'x\n', language: 'text' }));
     expect(px.data.length).toBe(px.width * px.height * 4);
   });
+  test.if(hasResvg())('ligatures off reaches the rasterizer', () => {
+    const px = (ligatures: boolean) => rasterize(renderSVG({ code: 'a => b != c\n', language: 'javascript', font: { ligatures } }), { ligatures }).data;
+    expect(Buffer.compare(Buffer.from(px(true)), Buffer.from(px(false)))).not.toBe(0);
+  });
   test('freeze writes the output file', () => {
     const out = join(tmp, 'lib.svg');
     const r = freeze({ code: 'print("hi")\n', language: 'python', output: out });

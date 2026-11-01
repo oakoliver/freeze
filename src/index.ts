@@ -41,6 +41,7 @@ function rasterOptions(r: Rendered): RasterOptions {
   const { font } = r.config;
   return {
     loadSystemFonts: font.family !== 'JetBrains Mono' || undefined,
+    ligatures: font.ligatures,
     fontFiles: font.file && /\.(ttf|otf)$/i.test(font.file) ? [font.file] : undefined,
   };
 }

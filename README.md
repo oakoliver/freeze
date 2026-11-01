@@ -142,6 +142,7 @@ Differences, all deliberate:
 - **The embedded font is declared as what it is.** Upstream embeds TrueType data labelled `application/x-font-woff2` / `format('woff2')`, followed by a stray `'`. This port writes `font/ttf` / `format('truetype')` and no stray quote. Browsers sniff the format either way; strict validators and converters do not.
 - **WebP works.** Upstream lists `.webp` but writes SVG text into the file. This port encodes lossless WebP (and draws it at 4x like PNG).
 - **PNG prefers resvg.** Upstream tries `rsvg-convert` first; that path ignores the embedded font and draws with whatever system font matches, so on a machine without JetBrains Mono installed upstream's PNG comes out in a proportional font. This port uses resvg with the bundled font loaded (as upstream's fallback does) and uses `rsvg-convert` only when resvg-js is missing.
+- **`--no-font.ligatures` also works in PNG and WebP.** resvg picks fonts by family name and the no-ligature file is called "JetBrains Mono NL", so upstream's PNGs keep `=>` and `!=` ligatures even with ligatures off. This port rasterizes with the NL family in that case (the SVG is unchanged).
 - **`--execute` without a native PTY.** Upstream uses a PTY library; this port uses Bun's built-in terminal under Bun, `script(1)` under Node.js on macOS and Linux, and pipes with `FORCE_COLOR`/`CLICOLOR_FORCE` elsewhere (Windows). The timeout kills with SIGKILL, as `exec.CommandContext` does.
 - **Interactive mode keeps one field per line.** Upstream sets an empty field separator, which with huh v1 runs the fields together on one line and hides most of them (current upstream `main` renders the form that way). This port uses a single newline, which gives the layout of upstream's own recording. It also refuses to start without a terminal instead of waiting on input that never comes.
 - **Help output** strips colours when stdout is not a terminal, including the stray `ESC[38;5;243m` upstream leaves after highlighted words.
@@ -157,7 +158,7 @@ Kept as upstream does it (they are visible in the output, so changing them would
 
 ```bash
 bun install
-bun test                     # 99 tests: upstream's tests and goldens, extra goldens, unit tests
+bun test                     # 100 tests: upstream's tests and goldens, extra goldens, unit tests
 npm run build                # dist/: ESM, CommonJS, CLI and type declarations
 (cd scripts/gen-chroma && go run .) > src/chroma-data.ts          # chroma styles
 (cd scripts/gen-chroma && go run . lexers) > src/lexers-data.ts  # chroma lexer registry
