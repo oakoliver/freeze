@@ -1,0 +1,89 @@
+{
+ "artichoke-base": [
+  "JetBrainsMonoNL-Regular.ttf"
+ ],
+ "artichoke-full": [
+  "JetBrainsMonoNL-Regular.ttf"
+ ],
+ "border-radius": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "border-width": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "bubbletea": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dimensions-config": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dimensions-margin-line-numbers": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dimensions-margin": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dimensions-padding": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dimensions": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "dracula": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "execute": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "eza": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "font-size-14": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "font-size-28": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "glow": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "haskell": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "helix": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "layout": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "line-height-2": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "lines": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "margin": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "overflow-line-numbers": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "overflow": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "padding": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "shadow": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "tab": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "window": [
+  "JetBrainsMono-Regular.ttf"
+ ],
+ "wrap": [
+  "JetBrainsMono-Regular.ttf"
+ ]
+}
