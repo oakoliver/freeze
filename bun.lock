@@ -10,6 +10,8 @@
         "highlight.js": "^11.11.1",
       },
       "devDependencies": {
+        "@oakoliver/bubbles": "^1.2.2",
+        "@oakoliver/bubbletea": "^1.2.1",
         "@types/node": "^20",
         "esbuild": "^0.28.2",
         "typescript": "^5",

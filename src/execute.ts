@@ -143,7 +143,8 @@ async function runBun(
     throw new ExecuteError(`could not execute: ${goExecError(err, args[0])}`, '');
   }
   let timedOut = false;
-  const timer = setTimeout(() => { timedOut = true; proc.kill(); }, o.timeout);
+  // Like exec.CommandContext: SIGKILL when the deadline passes.
+  const timer = setTimeout(() => { timedOut = true; proc.kill('SIGKILL'); }, o.timeout);
   const code: number = await proc.exited;
   clearTimeout(timer);
   // Drain what the terminal still holds (upstream waits up to 200ms).
@@ -165,7 +166,7 @@ function runPiped(
     child.stdout.on('data', (d: Buffer) => chunks.push(d));
     child.stderr.on('data', (d: Buffer) => chunks.push(d));
     let timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; child.kill(); }, o.timeout);
+    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, o.timeout);
     child.on('error', (err) => {
       clearTimeout(timer);
       reject(new ExecuteError(`could not execute: ${goExecError(err, argv[0])}`, ''));

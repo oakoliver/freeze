@@ -26,7 +26,7 @@ export { svgToPNG, svgToWebP, rasterize, hasResvg, RasterError } from './raster.
 export type { RasterOptions, Pixels } from './raster.js';
 export { encodeWebP } from './webp.js';
 
-export { getStyle, registerStyle, styleNames, formatSVG, Style } from './chroma.js';
+export { getStyle, registerStyle, styleNames, formatSVG, colourString, parseColour, Style } from './chroma.js';
 export type { Token, TokenType, StyleEntry, EmbeddedFont, SVGFormatterOptions } from './chroma.js';
 export { getLexer, matchLexer, analyseLexer, tokenise, hljsLanguage, languageNames } from './lexer.js';
 export type { LexerConfig } from './lexer.js';
