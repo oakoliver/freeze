@@ -16,7 +16,10 @@ const GREEN = '#03BF87';
 /** Upstream's tweaks to huh's Charm theme. */
 export function freezeTheme(isDark: boolean): Styles {
   const t = ThemeCharm(isDark);
-  t.fieldSeparator = newStyle();
+  // Upstream sets an empty separator, which with huh v1 runs the fields together
+  // on one line (see README); a single newline keeps one field per line, as in
+  // upstream's own recording.
+  t.fieldSeparator = newStyle().setString('\n');
   t.blurred.textInput.text = t.blurred.textInput.text.foreground('243');
   t.blurred.blurredButton = newStyle().foreground('8').paddingRight(1);
   t.blurred.focusedButton = newStyle().foreground('7').paddingRight(1);
@@ -76,10 +79,34 @@ const parse = (s: string) => {
 };
 
 /**
+ * @oakoliver/huh 1.1.2 only copies a bound value into an Input's text box when
+ * the field is focused, and every update writes the (still empty) text box
+ * back through the setter, so values bound with .value() are erased before
+ * the field is reached. A focus/blur round trip fills the text box first.
+ */
+function prefilled<T extends { focus(): unknown; blur(): unknown }>(field: T): T {
+  field.focus();
+  field.blur();
+  return field;
+}
+
+/**
  * runForm shows the form and returns the edited config. `error` is set when
  * the user aborted (ctrl+c); the config still holds what was entered.
  */
 export async function runForm(config: Config): Promise<{ config: Config; error?: Error }> {
+  const { form, finish } = buildForm(config);
+  let error: Error | undefined;
+  try {
+    await form.run();
+  } catch (err) {
+    error = err as Error;
+  }
+  return { config: finish(), error };
+}
+
+/** The form and a function that reads the edited config back out of it. */
+export function buildForm(config: Config): { form: ReturnType<typeof NewForm>; finish: () => Config } {
   const c = structuredClone(config);
   let padding = list(c.padding);
   let margin = list(c.margin);
@@ -99,51 +126,45 @@ export async function runForm(config: Config): Promise<{ config: Config; error?:
     ).withHide(c.input !== '' || c.execute !== ''),
     NewGroup(
       NewNote().title('Settings'),
-      NewInput().title('Output').placeholder(DEFAULT_OUTPUT_FILENAME).inline(true).prompt('')
-        .value(() => c.output, (v) => { c.output = v; }),
+      prefilled(NewInput().title('Output').placeholder(DEFAULT_OUTPUT_FILENAME).inline(true).prompt('')
+        .value(() => c.output, (v) => { c.output = v; })),
       NewSelect<string>().title('Theme ').inline(true).options(NewOptions(...styleNames()))
         .value(() => c.theme, (v) => { c.theme = v; }),
 
       NewNote().title('Window'),
-      NewInput().title('Padding ').placeholder('20 40').inline(true).prompt('').validate(validatePadding)
-        .value(() => padding, (v) => { padding = v; }),
-      NewInput().title('Margin ').placeholder('20').inline(true).prompt('').validate(validatePadding)
-        .value(() => margin, (v) => { margin = v; }),
+      prefilled(NewInput().title('Padding ').placeholder('20 40').inline(true).prompt('').validate(validatePadding)
+        .value(() => padding, (v) => { padding = v; })),
+      prefilled(NewInput().title('Margin ').placeholder('20').inline(true).prompt('').validate(validatePadding)
+        .value(() => margin, (v) => { margin = v; })),
       NewConfirm().title('Controls').inline(true).value(() => c.window, (v) => { c.window = v; }),
 
       NewNote().title('Font'),
-      NewInput().title('Font Family ').placeholder('JetBrains Mono').inline(true).prompt('')
-        .value(() => c.font.family, (v) => { c.font.family = v; }),
-      NewInput().title('Font Size ').placeholder('14').inline(true).prompt('').validate(validateInteger)
-        .value(() => fontSize, (v) => { fontSize = v; }),
-      NewInput().title('Line Height ').placeholder('1.2').inline(true).prompt('').validate(validateFloat)
-        .value(() => lineHeight, (v) => { lineHeight = v; }),
+      prefilled(NewInput().title('Font Family ').placeholder('JetBrains Mono').inline(true).prompt('')
+        .value(() => c.font.family, (v) => { c.font.family = v; })),
+      prefilled(NewInput().title('Font Size ').placeholder('14').inline(true).prompt('').validate(validateInteger)
+        .value(() => fontSize, (v) => { fontSize = v; })),
+      prefilled(NewInput().title('Line Height ').placeholder('1.2').inline(true).prompt('').validate(validateFloat)
+        .value(() => lineHeight, (v) => { lineHeight = v; })),
 
       NewNote().title('Border'),
-      NewInput().title('Border Radius ').placeholder('0').inline(true).prompt('').validate(validateInteger)
-        .value(() => borderRadius, (v) => { borderRadius = v; }),
-      NewInput().title('Border Width ').placeholder('1').inline(true).prompt('').validate(validateInteger)
-        .value(() => borderWidth, (v) => { borderWidth = v; }),
-      NewInput().title('Border Color ').validate(validateColor).inline(true).prompt('').placeholder('#515151')
-        .value(() => c.border.color, (v) => { c.border.color = v; }),
+      prefilled(NewInput().title('Border Radius ').placeholder('0').inline(true).prompt('').validate(validateInteger)
+        .value(() => borderRadius, (v) => { borderRadius = v; })),
+      prefilled(NewInput().title('Border Width ').placeholder('1').inline(true).prompt('').validate(validateInteger)
+        .value(() => borderWidth, (v) => { borderWidth = v; })),
+      prefilled(NewInput().title('Border Color ').validate(validateColor).inline(true).prompt('').placeholder('#515151')
+        .value(() => c.border.color, (v) => { c.border.color = v; })),
 
       NewNote().title('Shadow'),
-      NewInput().title('Blur ').placeholder('0').inline(true).prompt('').validate(validateInteger)
-        .value(() => shadowBlur, (v) => { shadowBlur = v; }),
-      NewInput().title('X Offset ').placeholder('0').inline(true).prompt('').validate(validateInteger)
-        .value(() => shadowX, (v) => { shadowX = v; }),
-      NewInput().title('Y Offset ').placeholder('0').inline(true).prompt('').validate(validateInteger)
-        .value(() => shadowY, (v) => { shadowY = v; }),
+      prefilled(NewInput().title('Blur ').placeholder('0').inline(true).prompt('').validate(validateInteger)
+        .value(() => shadowBlur, (v) => { shadowBlur = v; })),
+      prefilled(NewInput().title('X Offset ').placeholder('0').inline(true).prompt('').validate(validateInteger)
+        .value(() => shadowX, (v) => { shadowX = v; })),
+      prefilled(NewInput().title('Y Offset ').placeholder('0').inline(true).prompt('').validate(validateInteger)
+        .value(() => shadowY, (v) => { shadowY = v; })),
     ).withHeight(33),
   ).withTheme(ThemeFunc(freezeTheme)).withWidth(40);
 
-  let error: Error | undefined;
-  try {
-    await form.run();
-  } catch (err) {
-    error = err as Error;
-  }
-
+  const finish = (): Config => {
   if (c.output === '') c.output = DEFAULT_OUTPUT_FILENAME;
   c.padding = parsePadding(padding);
   c.margin = parseMargin(margin);
@@ -154,5 +175,7 @@ export async function runForm(config: Config): Promise<{ config: Config; error?:
   c.shadow.blur = parse(shadowBlur);
   c.shadow.x = parse(shadowX);
   c.shadow.y = parse(shadowY);
-  return { config: c, error };
+  return c;
+  };
+  return { form, finish };
 }
