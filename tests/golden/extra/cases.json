@@ -1,0 +1,10 @@
+[
+  { "input": "tests/golden/upstream/input/eza.ansi", "flags": ["--show-line-numbers"], "output": "eza-line-numbers" },
+  { "input": "tests/golden/upstream/input/glow.ansi", "flags": ["--wrap", "40"], "output": "glow-wrap-40" },
+  { "input": "tests/golden/upstream/input/layout.ansi", "flags": ["--lines", "3,10", "--window", "--border.radius", "6"], "output": "layout-lines-window" },
+  { "input": "tests/golden/upstream/input/helix.ansi", "flags": ["--config", "full", "--width", "800", "--height", "400"], "output": "helix-fixed-size" },
+  { "input": "tests/golden/upstream/input/eza.ansi", "flags": ["--font.size", "20", "--line-height", "1.5", "--padding", "10,20"], "output": "eza-font-size" },
+  { "input": "tests/golden/upstream/input/glow.ansi", "flags": ["--font.family", "Fira Code", "--margin", "10,20,30,40"], "output": "glow-font-family" },
+  { "input": "", "flags": ["--execute", "printf '\\033[1;31mred\\033[0m \\033[48;5;27m bg \\033[0m\\t\\033[3mitalic\\033[0m\\n'"], "output": "execute-sgr" },
+  { "input": "tests/golden/upstream/input/artichoke.hs", "flags": ["--no-font.ligatures", "--theme", "monokai"], "output": "code-no-ligatures" }
+]

@@ -351,8 +351,8 @@ class Studio {
     if (this.width < 90 || this.height < 20) {
       return S(`freeze studio needs at least 90×20 (this is ${this.width}×${this.height})`, { fg: C.amber });
     }
-    const leftW = 30;
-    const rightW = 34;
+    const leftW = 28;
+    const rightW = 32;
     const midW = this.width - leftW - rightW - 2;
     const bodyH = this.height - 4;
     const header = this.header();
@@ -434,7 +434,7 @@ class Studio {
     out.push(edge(S((r ? '╭' : '┌') + '─'.repeat(innerW - 2) + (r ? '╮' : '┐'), { fg: '#515151', bg })));
     if (o.window) {
       const dots = S('●', { fg: '#FF5A54', bg }) + S(' ', { bg }) + S('●', { fg: '#E6BF29', bg }) + S(' ', { bg }) + S('●', { fg: '#52C12B', bg });
-      out.push(edge(S('│ ', { fg: '#515151', bg }) + dots + S(' '.repeat(innerW - 8), { bg }) + S(' │', { fg: '#515151', bg })));
+      out.push(edge(S('│ ', { fg: '#515151', bg }) + dots + S(' '.repeat(innerW - 9), { bg }) + S(' │', { fg: '#515151', bg })));
     }
     for (let i = 0; i < codeH; i++) {
       const n = top + i;
