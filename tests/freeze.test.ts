@@ -43,7 +43,7 @@ test('TestFreezeErrorFileMissing', () => {
 });
 
 test('--version', () => {
-  expect(runCLI(['--version']).stdout).toContain('freeze version 1.0.0');
+  expect(runCLI(['--version']).stdout).toContain('freeze version 1.1.0');
 });
 
 test('unknown flag is an Invalid Usage error', () => {

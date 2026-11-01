@@ -6,7 +6,7 @@
 import { writeFileSync } from 'node:fs';
 import { executeCommand, type ExecuteOptions } from './execute.js';
 import { prepare, renderDocument, type FreezeOptions, type ImageFormat, type Rendered } from './freeze.js';
-import { svgToPNG, svgToWebP, type RasterOptions } from './raster.js';
+import { svgToPNG, svgToPNGAsync, svgToWebP, svgToWebPAsync, type RasterOptions } from './raster.js';
 
 export {
   render, renderSVG, renderDocument, formatFromPath, themeStyle, FreezeError,
@@ -22,7 +22,7 @@ export type { Config, ConfigInput, BorderConfig, ShadowConfig, FontConfig } from
 export { executeCommand, parseShellWords, ExecuteError } from './execute.js';
 export type { ExecuteOptions } from './execute.js';
 
-export { svgToPNG, svgToWebP, rasterize, hasResvg, RasterError } from './raster.js';
+export { svgToPNG, svgToWebP, svgToPNGAsync, svgToWebPAsync, rasterize, rasterizeAsync, hasResvg, RasterError } from './raster.js';
 export type { RasterOptions, Pixels } from './raster.js';
 export { encodeWebP } from './webp.js';
 
@@ -69,6 +69,31 @@ export function renderWebP(options: FreezeOptions): Uint8Array {
 }
 
 /**
+ * encodeAsync: like encode, without blocking the event loop while resvg draws
+ * (it runs on a worker thread). The bytes are identical to encode's.
+ */
+export async function encodeAsync(r: Rendered, format: ImageFormat): Promise<Uint8Array> {
+  if (format === 'png') return svgToPNGAsync(r.svg, rasterOptions(r));
+  if (format === 'webp') return svgToWebPAsync(r.svg, rasterOptions(r));
+  return new TextEncoder().encode(r.svg);
+}
+
+/**
+ * renderPNGAsync: renderPNG that does not block the event loop. Use it in
+ * servers; the output is byte-identical to renderPNG's.
+ */
+export async function renderPNGAsync(options: FreezeOptions): Promise<Uint8Array> {
+  const { config, source } = prepare({ ...options, format: 'png' });
+  return encodeAsync(renderDocument(config, source, 'png'), 'png');
+}
+
+/** renderWebPAsync: renderWebP that does not block the event loop while resvg draws. */
+export async function renderWebPAsync(options: FreezeOptions): Promise<Uint8Array> {
+  const { config, source } = prepare({ ...options, format: 'webp' });
+  return encodeAsync(renderDocument(config, source, 'webp'), 'webp');
+}
+
+/**
  * freeze: render and write `options.output` (format from its extension),
  * like the CLI. Returns the path written and the rendered document.
  */
@@ -91,4 +116,12 @@ export async function freezeCommand(
   const text = await executeCommand(command, { timeout: rest.executeTimeout, ...terminal });
   const { config, format } = prepare({ ...rest, code: text });
   return renderDocument(config, { text, origin: 'execute' }, format);
+}
+
+/** freezeAsync: freeze with the rasterizing off the main thread (the file write stays synchronous but is small). */
+export async function freezeAsync(options: FreezeOptions & { output: string }): Promise<Rendered & { output: string }> {
+  const { config, source, format } = prepare(options);
+  const r = renderDocument(config, source, format);
+  writeFileSync(options.output, await encodeAsync(r, format));
+  return { ...r, output: options.output };
 }

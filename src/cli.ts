@@ -13,7 +13,7 @@ import {
 } from './config.js';
 import { ExecuteError, executeCommand } from './execute.js';
 import { formatFromPath, FreezeError, goErrorMessage, renderDocument, type RenderSource } from './freeze.js';
-import { RasterError, svgToPNG, svgToWebP } from './raster.js';
+import { RasterError, svgToPNGAsync, svgToWebPAsync } from './raster.js';
 import { VERSION } from './version.js';
 
 // ─── Output helpers (error.go, main.go) ──────────────────────────────────────
@@ -231,8 +231,8 @@ async function run(argv: string[]): Promise<void> {
   };
 
   try {
-    if (format === 'png') writeFileSync(config.output, svgToPNG(rendered.svg, rasterOptions));
-    else if (format === 'webp') writeFileSync(config.output, svgToWebP(rendered.svg, rasterOptions));
+    if (format === 'png') writeFileSync(config.output, await svgToPNGAsync(rendered.svg, rasterOptions));
+    else if (format === 'webp') writeFileSync(config.output, await svgToWebPAsync(rendered.svg, rasterOptions));
     else writeFileSync(config.output, rendered.svg);
   } catch (err) {
     if (err instanceof RasterError) fatal(`Unable to convert SVG to ${format.toUpperCase()}`, err.message);

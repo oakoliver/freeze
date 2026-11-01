@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1.0 — non-blocking rasterizing
+
+### Added
+
+- `renderPNGAsync`, `renderWebPAsync`, `freezeAsync`, `encodeAsync`,
+  `svgToPNGAsync`, `svgToWebPAsync` and `rasterizeAsync`: promise-returning
+  counterparts of the raster functions. resvg renders on a worker thread
+  (`renderAsync`) and the `rsvg-convert` fallback is spawned asynchronously, so
+  a 4x frame no longer freezes the event loop for a second or more. The bytes are
+  identical to the synchronous functions'.
+
+### Changed
+
+- The CLI rasterizes through the async path.
+- The synchronous API is unchanged. PNG and WebP encoding of the finished
+  pixels still happens on the main thread (about 150 ms and 150 to 300 ms at 4x
+  for a 120x34 frame); see the README.
+
 ## 1.0.0 — port of freeze v0.2.2
 
 First release: a TypeScript port of [charmbracelet/freeze](https://github.com/charmbracelet/freeze)

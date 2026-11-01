@@ -18,7 +18,7 @@ Generate images of code and terminal output: SVG, PNG and WebP. A TypeScript por
 - **PNG and WebP** through [resvg](https://github.com/RazrFalcon/resvg), drawn at 4x when the size is automatic; WebP is encoded by a small lossless encoder written in TypeScript
 - **Presets**: `base`, `full`, your own JSON file, and `user` (saved by the interactive mode)
 - **Interactive mode** (`--interactive`) built with [@oakoliver/huh](https://github.com/oakoliver/huh)
-- **A library API**: `renderSVG`, `renderPNG`, `renderWebP`, `freeze`, `freezeCommand`, plus the pieces (`executeCommand`, `tokenise`, `getStyle`, `encodeWebP`, ...)
+- **A library API**: `renderSVG`, `renderPNG`, `renderWebP`, `freeze`, `freezeCommand`, non-blocking `renderPNGAsync`, `renderWebPAsync` and `freezeAsync`, plus the pieces (`executeCommand`, `tokenise`, `getStyle`, `encodeWebP`, ...)
 - Node.js 18+ and Bun; ESM and CommonJS builds with type declarations
 
 ## Install
@@ -74,6 +74,22 @@ freeze({ file: 'main.go', output: 'main.webp', border: { radius: 12 } });
 const rendered = await freezeCommand('git --no-pager log --oneline --color=always -10', { config: 'full', format: 'png' });
 writeFileSync('log.png', encode(rendered, 'png'));
 ```
+
+### Servers: the async API
+
+`renderPNG`, `renderWebP` and `freeze` are synchronous: resvg draws on the calling thread, which at the automatic 4x scale takes about a second for a 120x34 terminal frame and stalls everything else in the process. In a server use the async variants. They return a promise and the byte-identical output, while resvg renders on a worker thread (and the `rsvg-convert` fallback is spawned asynchronously).
+
+```typescript
+import { renderPNGAsync, renderWebPAsync, freezeAsync } from '@oakoliver/freeze';
+
+const png = await renderPNGAsync({ code: frame, language: 'ansi', config: 'full' });
+const webp = await renderWebPAsync({ file: 'main.go' });
+await freezeAsync({ file: 'main.go', output: 'main.png' });
+```
+
+Also exported: `encodeAsync`, `svgToPNGAsync`, `svgToWebPAsync` and `rasterizeAsync`. Several renders in flight run in parallel on libuv's thread pool (four threads by default; see `UV_THREADPOOL_SIZE`). The CLI uses the async path.
+
+What still runs on the main thread: laying out the SVG (tens of milliseconds) and the encoding of the finished pixels, resvg's PNG encoder (about 150 ms at 4x for a 4753x3032 frame) and the WebP encoder (about 150 to 300 ms at 4x, plain JavaScript). That is a short pause instead of a second or more, but not zero. Auto-sized output is 4x; set `width` and `height` to draw at 1x, where everything takes a few milliseconds.
 
 Every option of the CLI is a field of `FreezeOptions` (`window`, `padding`, `margin`, `border`, `shadow`, `font`, `lineHeight`, `lines`, `wrap`, `width`, `height`, `background`, `theme`, `language`, `config`). `render()` returns the SVG together with its size, the scale and the detected language. The lower-level parts are exported too: `executeCommand` (run a command in a terminal), `tokenise` and `getLexer` (highlighting), `getStyle`, `styleNames` and `registerStyle` (themes), `svgToPNG`, `svgToWebP`, `rasterize` and `encodeWebP`.
 

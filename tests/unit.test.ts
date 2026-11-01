@@ -11,7 +11,8 @@ import { encodeWebP } from '../src/webp';
 import { wrap } from '../src/wrap';
 import { escapeXml, XmlElement, XmlText } from '../src/xml';
 import {
-  executeCommand, freeze, hasResvg, rasterize, render, renderPNG, renderSVG, renderWebP, resolveConfig,
+  executeCommand, freeze, freezeAsync, hasResvg, rasterize, rasterizeAsync, render, renderPNG, renderPNGAsync, renderSVG,
+  renderWebP, renderWebPAsync, resolveConfig, svgToPNGAsync,
 } from '../src/index';
 
 const tmp = mkdtempSync(join(tmpdir(), 'freeze-unit-'));
@@ -200,6 +201,32 @@ describe('library API', () => {
     expect(Buffer.from(webp.subarray(8, 12)).toString()).toBe('WEBP');
     const px = rasterize(renderSVG({ code: 'x\n', language: 'text' }));
     expect(px.data.length).toBe(px.width * px.height * 4);
+  });
+  test.if(hasResvg())('async variants are byte-identical to the sync ones', async () => {
+    const opts = { code: 'const a = 1 => 2;\nconsole.log(a != 3)\n', language: 'javascript', config: 'full' };
+    expect(Buffer.compare(Buffer.from(await renderPNGAsync(opts)), Buffer.from(renderPNG(opts)))).toBe(0);
+    expect(Buffer.compare(Buffer.from(await renderWebPAsync(opts)), Buffer.from(renderWebP(opts)))).toBe(0);
+    const noLig = { ...opts, font: { ligatures: false } };
+    expect(Buffer.compare(Buffer.from(await renderPNGAsync(noLig)), Buffer.from(renderPNG(noLig)))).toBe(0);
+    const svg = renderSVG({ code: 'x\n', language: 'text' });
+    expect(Buffer.compare(Buffer.from((await rasterizeAsync(svg)).data), Buffer.from(rasterize(svg).data))).toBe(0);
+    expect(Buffer.from(await svgToPNGAsync(svg)).subarray(1, 4).toString()).toBe('PNG');
+  });
+  test.if(hasResvg())('freezeAsync writes the output file', async () => {
+    const out = join(tmp, 'lib-async.png');
+    const r = await freezeAsync({ code: 'print("hi")\n', language: 'python', output: out });
+    expect(r.output).toBe(out);
+    expect(Buffer.compare(readFileSync(out), Buffer.from(renderPNG({ code: 'print("hi")\n', language: 'python' })))).toBe(0);
+  });
+  test.if(hasResvg())('renderPNGAsync leaves the event loop running', async () => {
+    const code = Array.from({ length: 30 }, (_, i) => `line ${i} const x = ${i} + 1; // padding to make the frame wide`).join('\n');
+    // A big frame so rendering takes long enough to see timers fire (4x scale).
+    let ticks = 0;
+    const timer = setInterval(() => { ticks++; }, 5);
+    await renderPNGAsync({ code, language: 'typescript', config: 'full' });
+    clearInterval(timer);
+    // A synchronous render would let no timer fire until it returned.
+    expect(ticks).toBeGreaterThanOrEqual(3);
   });
   test.if(hasResvg())('ligatures off reaches the rasterizer', () => {
     const px = (ligatures: boolean) => rasterize(renderSVG({ code: 'a => b != c\n', language: 'javascript', font: { ligatures } }), { ligatures }).data;
